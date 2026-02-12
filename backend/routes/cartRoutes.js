@@ -1,5 +1,5 @@
-import express from 'express';
-import { supabase } from './supabaseClient.js';
+const express = require("express");
+const { supabase } = require("../supabaseClient");
 
 const router = express.Router();
 
@@ -58,4 +58,4 @@ router.delete('/:id', async (req, res) => {
   res.json({ message: 'Item removed', cart: data });
 });
 
-export default router;
+module.exports = router;
