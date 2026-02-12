@@ -1,13 +1,22 @@
-const express = require('express');
-const Product = require('../models/Product');
+import express from 'express';
+import { supabase } from './supabaseClient.js';
 
 const router = express.Router();
 
-router.get('/', (req, res) => {
-  Product.find({})
-    .then((foundProduct) => {
-      res.send(foundProduct);
-    });
+// Get all products
+router.get('/', async (req, res) => {
+  try {
+    const { data: products, error } = await supabase
+      .from('products')
+      .select('*')
+      .order('id', { ascending: true });
+
+    if (error) throw error;
+
+    res.json(products);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-module.exports = router;
+export default router;

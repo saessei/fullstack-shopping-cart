@@ -1,35 +1,38 @@
-const express = require('express');
-const _ = require('lodash');
-const User = require('../models/User');
-const { checkToken } = require('../middleware/checkToken');
+import express from 'express';
+import { supabase } from './supabaseClient.js';
 
 const router = express.Router();
 
-router.get('/', checkToken, (req, res) => {
-  res.status(200).send(req.user);
+// Signup
+router.post('/signup', async (req, res) => {
+  const { email, password } = req.body;
+
+  const { data, error } = await supabase.auth.signUp({ email, password });
+
+  if (error) return res.status(400).json({ error: error.message });
+  res.status(201).json({ message: 'User created', user: data.user });
 });
 
-router.put('/', checkToken, async ({ body, user }, res) => {
-  const {
-    email,
-    address,
-    phone,
-  } = body;
+// Login
+router.post('/login', async (req, res) => {
+  const { email, password } = req.body;
 
-  try {
-    const foundUser = await User.findById(user.id).exec();
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
-    await foundUser.replaceOne({
-      ..._.omit(foundUser.toJSON(), ['id']),
-      email: email || foundUser.email,
-      address: address || foundUser.address,
-      phone: phone || foundUser.phone,
-    });
-
-    return res.status(200).send({ message: 'User updated' });
-  } catch (err) {
-    return res.status(500).send({ message: err });
-  }
+  if (error) return res.status(400).json({ error: error.message });
+  res.json({ message: 'Login successful', session: data.session });
 });
 
-module.exports = router;
+// Get user info (requires Supabase session header)
+router.get('/me', async (req, res) => {
+  const token = req.headers.authorization?.split(' ')[1];
+
+  if (!token) return res.status(401).json({ error: 'Missing token' });
+
+  const { data: { user }, error } = await supabase.auth.getUser(token);
+
+  if (error) return res.status(400).json({ error: error.message });
+  res.json({ user });
+});
+
+export default router;

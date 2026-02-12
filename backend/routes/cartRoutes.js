@@ -1,72 +1,61 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const Cart = require('../models/Cart');
-const { checkToken } = require('../middleware/checkToken');
+import express from 'express';
+import { supabase } from './supabaseClient.js';
 
 const router = express.Router();
-const jsonParser = bodyParser.json();
 
-router.post('/', checkToken, (req, res) => {
-  const user = req.user;
-  const item = {
-    product: req.body.product,
-    quantity: req.body.quantity
-  };
+// Add item to cart
+router.post('/', async (req, res) => {
+  const { user_id, product_id, quantity } = req.body;
 
-  Cart.findOne({ user: user })
-    .then((foundCart) => {
-      if (foundCart) {
-        let products = foundCart.items.map((item) => item.product + '');
-        if (products.includes(item.product)) {
-          Cart.findOneAndUpdate({
-            user: user,
-            items: {
-              $elemMatch: { product: item.product }
-            }
-          },
-            {
-              $inc: { 'items.$.quantity': item.quantity }
-            })
-            .exec()
-            .then(() => res.end());
-        } else {
-          foundCart.items.push(item);
-          foundCart.save().then(() => res.end());
-        }
-      } else {
-        Cart.create({
-          user: user,
-          items: [item]
-        })
-          .then(() => res.end());
-      }
-    });
+  const { data, error } = await supabase
+    .from('carts')
+    .insert([{ user_id, product_id, quantity }]);
+
+  if (error) return res.status(400).json({ error: error.message });
+  res.json({ message: 'Item added', cart: data[0] });
 });
 
-router.get('/', checkToken, (req, res) => {
-  Cart.findOne({ user: req.user.id })
-  .populate('items.product')
-  .exec((err, cart) => {
-    if (!cart) {
-      return res.send(null);
-    }
+// Get user's cart
+router.get('/:user_id', async (req, res) => {
+  const { user_id } = req.params;
 
-    res.send(cart);
-  });
+  const { data, error } = await supabase
+    .from('carts')
+    .select('id, product_id, quantity, products(name, price)')
+    .eq('user_id', user_id)
+    .order('id');
+
+  if (error) return res.status(400).json({ error: error.message });
+  res.json(data);
 });
 
-router.put('/', checkToken, jsonParser, (req, res) => {
-  Cart.findById(req.body.cartId)
-    .then((foundCart) => {
-      foundCart.items = foundCart.items.filter((item) => item._id != req.body.itemId);
-      foundCart.save(() => res.end());
-    });
+// Update cart item quantity
+router.put('/:id', async (req, res) => {
+  const { id } = req.params;
+  const { quantity } = req.body;
+
+  const { data, error } = await supabase
+    .from('carts')
+    .update({ quantity })
+    .eq('id', id)
+    .single();
+
+  if (error) return res.status(400).json({ error: error.message });
+  res.json({ message: 'Cart updated', cart: data });
 });
 
-router.delete('/', checkToken, (req, res) => {
-  Cart.findByIdAndRemove(req.query.id)
-    .then(() => res.end())
-    .catch((err) => res.send(err));
+// Delete cart item
+router.delete('/:id', async (req, res) => {
+  const { id } = req.params;
+
+  const { data, error } = await supabase
+    .from('carts')
+    .delete()
+    .eq('id', id)
+    .single();
+
+  if (error) return res.status(400).json({ error: error.message });
+  res.json({ message: 'Item removed', cart: data });
 });
 
-module.exports = router;
+export default router;

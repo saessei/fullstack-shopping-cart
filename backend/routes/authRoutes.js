@@ -1,72 +1,51 @@
 const express = require('express');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
-const User = require('../models/User');
-
 const router = express.Router();
+const { supabase } = require('../supabaseClient');
+const jwt = require('jsonwebtoken');
 
-const generateToken = (data) => {
-  return jwt.sign(data, process.env.PRIVATE_KEY);
-}
-
-router.post('/register', async ({ body }, res) => {
-  const {
-    username,
-    password,
-    email,
-    address,
-    phone,
-  } = body;
-
+// Register
+router.post('/register', async (req, res) => {
+  const { name, email, password } = req.body;
   try {
-    const user = await User.findOne({ username }).exec();
+    const { data: existingUser } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', email)
+      .single();
 
-    if (user) {
-      return res.status(409).send({ message: 'User already exists' });
-    }
+    if (existingUser) return res.status(400).json({ message: 'User already exists' });
 
-    const newUserData = {
-      username,
-      email,
-      address,
-      phone,
-      orders: []
-    };
+    const { data, error } = await supabase
+      .from('users')
+      .insert([{ name, email, password }])
+      .select();
 
-    const salt = await bcrypt.genSalt();
-    const hash = await bcrypt.hash(password, salt);
-
-    newUserData.password = hash;
-    newUserData.token = generateToken(username);
-
-    const newUser = new User(newUserData);
-    const createdUser = await newUser.save();
-
-    res.status(201).send({ ...createdUser.toJSON() });
+    if (error) throw error;
+    res.status(201).json(data[0]);
   } catch (err) {
-    res.status(500).send({ message: err });
+    res.status(500).json({ error: err.message });
   }
 });
 
-router.post('/login', async ({ body }, res) => {
-  const { username, password } = body;
-
+// Login
+router.post('/login', async (req, res) => {
+  const { email, password } = req.body;
   try {
-    const existingUser = await User.findOne({ username }).exec();
+    const { data } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', email)
+      .single();
 
-    if (!existingUser) {
-      return res.status(401).send({ message: 'No user found' });
-    }
+    if (!data) return res.status(400).json({ message: 'User not found' });
+    if (data.password !== password) return res.status(400).json({ message: 'Incorrect password' });
 
-    const correctPassword = await bcrypt.compare(password, existingUser.password);
-
-    if (!correctPassword) {
-      return res.status(401).send({ message: 'Invalid credentials' });
-    }
-
-    return res.status(200).send({ ...existingUser.toJSON() });
+    const token = jwt.sign({ id: data.id, email: data.email }, process.env.JWT_SECRET, {
+      expiresIn: '1h',
+    });
+    res.json({ user: data, token });
   } catch (err) {
-    res.status(500).send({ message: err });
+    res.status(500).json({ error: err.message });
   }
 });
 
