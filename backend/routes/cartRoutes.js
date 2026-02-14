@@ -7,6 +7,8 @@ const router = express.Router();
 router.post('/', async (req, res) => {
   const { user_id, product_id, quantity } = req.body;
 
+  if (quantity <= 0) return res.status(400).json({ message: "Quantity should not be negative."})
+
   const { data, error } = await supabase
     .from('carts')
     .insert([{ user_id, product_id, quantity }]);

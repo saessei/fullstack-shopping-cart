@@ -29,3 +29,15 @@ describe("Shopping Cart API (happy paths)", () => {
   });
 
 });
+
+describe("Shopping Cart API (sad path)", () => {
+  it("should not input a negative quanity number", async () => {
+    const newItem = { user_id: 1, product_id: 101, quantity: -2};
+    const mockResponse = {message: "Quantity should not be negative."};
+
+    const res = await request(app).post("/api/cart").send(newItem);
+
+    expect(res.statusCode).toEqual(400);
+    expect(res.body).toEqual(mockResponse)
+  });
+});
