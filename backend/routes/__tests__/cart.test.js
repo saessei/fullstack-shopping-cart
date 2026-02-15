@@ -3,10 +3,13 @@ const express = require("express");
 const cartRouter = require("../cartRoutes"); 
 const { supabase } = require("../../supabaseClient");
 
-jest.mock("../../supabaseClient", () => ({
+jest.mock('../../supabaseClient', () => ({
   supabase: {
-    from: jest.fn(),
-  },
+    from: jest.fn(() => ({
+      insert: jest.fn().mockReturnThis(),
+      select: jest.fn().mockResolvedValue({ data: [{ id: 1, name: 'Item' }], error: null })
+    }))
+  }
 }));
 
 const app = express();
@@ -15,18 +18,22 @@ app.use("/api/cart", cartRouter);
 
 describe("Shopping Cart API (happy paths)", () => {
   it("should add a new item to the cart", async () => {
-    const newItem = { user_id: 1, product_id: 101, quantity: 2 };
-    const mockResponse = [{ id: 1, ...newItem }];
+  const newItem = { user_id: 1, product_id: 101, quantity: 2 };
+  const mockResponse = [{ id: 1, ...newItem }];
 
-    supabase.from.mockReturnValue({
-      insert: jest.fn().mockResolvedValue({ data: mockResponse, error: null }),
-    });
+  const mockSelect = jest.fn().mockResolvedValue({ data: mockResponse, error: null });
+  const mockInsert = jest.fn().mockReturnThis(); // Returns the object containing select
 
-    const res = await request(app).post("/api/cart").send(newItem);
-
-    expect(res.statusCode).toEqual(200);
-    expect(res.body).toEqual({ message: "Item added", cart: mockResponse[0] });
+  supabase.from.mockReturnValue({
+    insert: mockInsert,
+    select: mockSelect
   });
+
+  const res = await request(app).post("/api/cart").send(newItem);
+  
+  expect(res.statusCode).toEqual(200);
+  expect(res.body).toEqual({ message: "Item added", cart: mockResponse[0] });
+});
 
 });
 
