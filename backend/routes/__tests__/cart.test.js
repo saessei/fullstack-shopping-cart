@@ -22,7 +22,7 @@ describe("Shopping Cart API (happy paths)", () => {
   const mockResponse = [{ id: 1, ...newItem }];
 
   const mockSelect = jest.fn().mockResolvedValue({ data: mockResponse, error: null });
-  const mockInsert = jest.fn().mockReturnThis(); // Returns the object containing select
+  const mockInsert = jest.fn().mockReturnThis();
 
   supabase.from.mockReturnValue({
     insert: mockInsert,
