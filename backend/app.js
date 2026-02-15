@@ -1,6 +1,7 @@
 const express = require("express");
 
 const cartRoutes = require("./routes/cartRoutes.js");// import other routes if needed
+const catalogRoutes = require("./routes/catalogRoutes.js");
 // import userRoutes from "./userRoutes.js";
 // import orderRoutes from "./orderRoutes.js";
 // import productRoutes from "./productRoutes.js";
@@ -14,7 +15,7 @@ app.use(express.json());
 app.use("/api/cart", cartRoutes);
 // app.use("/users", userRoutes);
 // app.use("/orders", orderRoutes);
-// app.use("/products", catalogRoutes);
+app.use("/api/products", catalogRoutes);
 
 app.get("/", (req, res) => {
   res.status(200).json({ message: "API is running." });

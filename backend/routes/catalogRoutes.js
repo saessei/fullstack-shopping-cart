@@ -1,5 +1,5 @@
-import express from 'express';
-import { supabase } from './supabaseClient.js';
+const express = require("express");
+const { supabase } = require("../supabaseClient");
 
 const router = express.Router();
 
@@ -19,4 +19,4 @@ router.get('/', async (req, res) => {
   }
 });
 
-export default router;
+module.exports = router;
