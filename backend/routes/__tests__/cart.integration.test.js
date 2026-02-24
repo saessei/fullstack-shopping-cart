@@ -3,7 +3,7 @@ const app = require("../../app");
 const { supabase } = require("../../supabaseClient");
 
 describe("Shopping Cart API (happy paths)", () => {
-  beforeEach(async () => {
+  beforeEach(async () => { //makes sure the db is clean
     await supabase.from("carts").delete().eq("user_id", "test-user-123");
   });
 

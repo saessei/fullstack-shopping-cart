@@ -17,7 +17,10 @@ router.post("/", async (req, res) => {
     .insert([{ user_id, product_id, quantity }])
     .select();
 
-  if (error) return res.status(400).json({ error: error.message });
+  if (error) {
+    console.error("Supabase insert error:", error);
+    return res.status(400).json({ error: error.message });
+  }
   res.json({ message: "Item added", cart: data[0] });
 });
 
@@ -30,7 +33,10 @@ router.get("/:user_id", async (req, res) => {
     .select("*") 
     .eq("user_id", user_id);
 
-  if (error) return res.status(400).json({ error: error.message });
+  if (error) {
+    console.error("Supabase select error:", error);
+    return res.status(400).json({ error: error.message });
+  }
   res.json(data);
 });
 
