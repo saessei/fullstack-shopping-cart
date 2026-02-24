@@ -1,6 +1,6 @@
 const request = require("supertest");
 const express = require("express");
-const cartRouter = require("../cartRoutes");
+const userRouter = require("../userRoutes");
 const { supabase } = require("../../supabaseClient");
 
 jest.mock("../../supabaseClient", () => ({
@@ -8,7 +8,7 @@ jest.mock("../../supabaseClient", () => ({
     from: jest.fn(() => ({
       insert: jest.fn().mockReturnThis(),
       select: jest.fn().mockResolvedValue({
-        data: [{ id: 1, name: "Item" }],
+        data: [{ id: 1, username: "testuser", email: "test@example.com" }],
         error: null,
       }),
     })),
@@ -17,12 +17,12 @@ jest.mock("../../supabaseClient", () => ({
 
 const app = express();
 app.use(express.json());
-app.use("/api/cart", cartRouter);
+app.use("/api/users", userRouter);
 
-describe("Shopping Cart API (happy paths)", () => {
-  it("should add a new item to the cart", async () => {
-    const newItem = { user_id: 1, product_id: 101, quantity: 2 };
-    const mockResponse = [{ id: 1, ...newItem }];
+describe("Users API (happy paths)", () => {
+  it("should create a new user", async () => {
+    const newUser = { username: "testuser", email: "test@example.com" };
+    const mockResponse = [{ id: 1, ...newUser }];
 
     const mockSelect = jest.fn().mockResolvedValue({
       data: mockResponse,
@@ -35,19 +35,29 @@ describe("Shopping Cart API (happy paths)", () => {
       select: mockSelect,
     });
 
-    const res = await request(app).post("/api/cart").send(newItem);
+    const res = await request(app).post("/api/users").send(newUser);
 
     expect(res.statusCode).toEqual(200);
-    expect(res.body).toEqual({ message: "Item added", cart: mockResponse[0] });
+    expect(res.body).toEqual({ message: "User created", user: mockResponse[0] });
   });
 });
 
-describe("Shopping Cart API (sad path)", () => {
-  it("should not input a negative quantity number", async () => {
-    const newItem = { user_id: 1, product_id: 101, quantity: -2 };
-    const mockResponse = { message: "Quantity should not be negative." };
+describe("Users API (sad paths)", () => {
+  it("should not create a user without an email", async () => {
+    const newUser = { username: "testuser" };
+    const mockResponse = { message: "Email is required." };
 
-    const res = await request(app).post("/api/cart").send(newItem);
+    const res = await request(app).post("/api/users").send(newUser);
+
+    expect(res.statusCode).toEqual(400);
+    expect(res.body).toEqual(mockResponse);
+  });
+
+  it("should not create a user without a username", async () => {
+    const newUser = { email: "test@example.com" };
+    const mockResponse = { message: "Username is required." };
+
+    const res = await request(app).post("/api/users").send(newUser);
 
     expect(res.statusCode).toEqual(400);
     expect(res.body).toEqual(mockResponse);
