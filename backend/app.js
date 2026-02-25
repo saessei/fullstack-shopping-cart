@@ -2,6 +2,7 @@ const express = require("express");
 
 const cartRoutes = require("./routes/cartRoutes.js");// import other routes if needed
 const catalogRoutes = require("./routes/catalogRoutes.js");
+const userRouter = require("./routes/userRoutes.js"); 
 // import userRoutes from "./userRoutes.js";
 // import orderRoutes from "./orderRoutes.js";
 // import productRoutes from "./productRoutes.js";
@@ -12,7 +13,8 @@ const app = express();
 app.use(express.json());
 
 // Routes
-app.use("/api/cart", cartRoutes);
+app.use("/api/cart", cartRoutes); 
+app.use('/api/users', userRouter);
 // app.use("/users", userRoutes);
 // app.use("/orders", orderRoutes);
 app.use("/api/products", catalogRoutes);

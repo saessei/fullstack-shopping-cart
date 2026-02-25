@@ -2,12 +2,12 @@ const request = require("supertest");
 const app = require("../../app");
 const { supabase } = require("../../supabaseClient");
 
-describe("Shopping Cart API (happy paths)", () => {
+describe("Shopping Cart API", () => {
   beforeEach(async () => { //makes sure the db is clean
     await supabase.from("carts").delete().eq("user_id", "test-user-123");
   });
 
-  it("should save an item to the Supabase carts table", async () => {
+  it("POST /api/carts should save an item to the Supabase carts table", async () => {
     const newItem = {
       user_id: "test-user-123",
       product_id: 1,
@@ -19,21 +19,21 @@ describe("Shopping Cart API (happy paths)", () => {
     expect(res.statusCode).toEqual(200);
     expect(res.body.message).toBe("Item added");
 
-    const dbCheck = await request(app).get("/api/cart/test-user-123");
+    const dbCheck = await request(app).get("/api/cart/test-user-123"); //verify db was updated
 
-    expect(dbCheck.statusCode).toEqual(200);
+    expect(dbCheck.statusCode).toEqual(200); 
     expect(Array.isArray(dbCheck.body)).toBe(true);
     expect(dbCheck.body.length).toBeGreaterThan(0);
     expect(dbCheck.body[0].user_id).toEqual("test-user-123");
   });
   
 
-  it("should not save an item with a negative quantity", async () => {
+  it("POST /api/carts should not save an item with a negative quantity", async () => {
     const newItem = {
       user_id: "test-user-123",
       product_id: 1,
       quantity: -1,
-    };
+    };  
 
     const res = await request(app).post("/api/cart").send(newItem);
 

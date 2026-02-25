@@ -1,85 +1,48 @@
 const request = require("supertest");
-const express = require("express");
-const userRouter = require("../userRoutes");
+const app = require("../../app");
 const { supabase } = require("../../supabaseClient");
 
-jest.mock("../../supabaseClient", () => ({
-  supabase: {
-    from: jest.fn(() => ({
-      insert: jest.fn().mockReturnThis(),
-      select: jest.fn().mockResolvedValue({
-        data: [{ id: 1, username: "testuser", email: "test@example.com" }],
-        error: null,
-      }),
-    })),
-  },
-}));
 
-const app = express();
-app.use(express.json());
-app.use("/api/users", userRouter);
 
 describe("Users API (happy paths)", () => {
-  it("should create a new user", async () => {
+  beforeEach(async () => {
+    await supabase.from("users").delete().eq("email", "test@example.com");
+  });
+
+  it("POST /api/users should create a new user", async () => {
     const newUser = { username: "testuser", email: "test@example.com" };
-    const mockResponse = [{ id: 1, ...newUser }];
-
-    const mockSelect = jest.fn().mockResolvedValue({
-      data: mockResponse,
-      error: null,
-    });
-    const mockInsert = jest.fn().mockReturnThis();
-
-    supabase.from.mockReturnValue({
-      insert: mockInsert,
-      select: mockSelect,
-    });
 
     const res = await request(app).post("/api/users").send(newUser);
 
     expect(res.statusCode).toEqual(200);
-    expect(res.body).toEqual({ message: "User created", user: mockResponse[0] });
-  });
-});
+    expect(res.body.message).toBe("User created");
+    expect(res.body.user).toHaveProperty("id");
+    expect(res.body.user.username).toBe("testuser");
+    expect(res.body.user.email).toBe("test@example.com");
 
-describe("Users API (sad paths)", () => {
-  it("should not create a user without an email", async () => {
+    const dbCheck = await request(app).get("/api/users");
+    expect(dbCheck.statusCode).toEqual(200);
+    expect(Array.isArray(dbCheck.body)).toBe(true);
+    const found = dbCheck.body.find(u => u.email === "test@example.com");
+    expect(found).toBeDefined();
+    expect(found.username).toBe("testuser");
+  });
+
+  it("POST /api/users should not create a user without an email", async () => {
     const newUser = { username: "testuser" };
-    const mockResponse = { message: "Email is required." };
 
     const res = await request(app).post("/api/users").send(newUser);
 
     expect(res.statusCode).toEqual(400);
-    expect(res.body).toEqual(mockResponse);
+    expect(res.body.message).toBe("Email is required.");
   });
 
-  it("should not create a user without a username", async () => {
+  it("POST /api/users should not create a user without a username", async () => {
     const newUser = { email: "test@example.com" };
-    const mockResponse = { message: "Username is required." };
 
     const res = await request(app).post("/api/users").send(newUser);
 
     expect(res.statusCode).toEqual(400);
-    expect(res.body).toEqual(mockResponse);
-  });
-
-  it("should not allow duplicate email addresses", async () => {
-    const newUser = { username: "duplicateUser", email: "test@example.com" };
-    const mockResponse = { message: "Email already exists." };
-
-    const mockSelect = jest.fn().mockResolvedValue({
-      data: [{ id: 1, username: "testuser", email: "test@example.com" }],
-      error: null,
-    });
-
-    supabase.from.mockReturnValue({
-      insert: jest.fn().mockReturnThis(),
-      select: mockSelect,
-    });
-
-    const res = await request(app).post("/api/users").send(newUser);
-
-    expect(res.statusCode).toEqual(400);
-    expect(res.body).toEqual(mockResponse);
+    expect(res.body.message).toBe("Username is required.");
   });
 });

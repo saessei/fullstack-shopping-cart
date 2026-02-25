@@ -38,7 +38,7 @@ describe("Catalog API tests", () => {
 
   //sad path
   it("GET /api/products should return 500 if database returns an error", async () => {
-    const originalFrom = supabase.from;
+    const originalFrom = supabase.from; //saves original supabase.from so it can be restored later
 
     supabase.from = () => ({
       select: () => ({
