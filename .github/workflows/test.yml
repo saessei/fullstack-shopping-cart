@@ -1,54 +1,36 @@
-name: Node.js CI
+name: Run Tests
 
-# This triggers the workflow on any push to master (which includes merges) 
-# and whenever a pull request is opened or updated targeting master.
 on:
   push:
-    branches: [ "master" ]
+    branches:
+      - main
+      - master
   pull_request:
-    branches: [ "master" ]
+    branches:
+      - main
+      - master
 
 jobs:
-  build-and-test:
+  test:
     runs-on: ubuntu-latest
-
-    # Service containers to run alongside the job
-    services:
-      postgres:
-        image: postgres:14
-        env:
-          POSTGRES_USER: testuser
-          POSTGRES_PASSWORD: testpassword
-          POSTGRES_DB: testdb
-        # Set health checks to wait until postgres has started
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Use Node.js
+      - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18.x'
-          cache: 'npm'
+          node-version: 18
 
-      - name: Install Dependencies
+      - name: Install dependencies
         run: npm ci
 
-      - name: Run Database Migrations
-        # We pass the DATABASE_URL dynamically so node-pg-migrate knows where to connect
-        env:
-          DATABASE_URL: postgres://testuser:testpassword@localhost:5432/testdb
-        run: npm run migrate up
+      - name: Run migrations (optional)
+        run: npm run migrate  # if you need database migrations
 
-      - name: Run Tests
+      - name: Run tests
         env:
-          DATABASE_URL: postgres://testuser:testpassword@localhost:5432/testdb
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
         run: npm test
