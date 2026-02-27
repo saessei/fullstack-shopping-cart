@@ -6,75 +6,28 @@ const { clearDatabase } = require("../utils/db");
 
 //add comment
 
-// Mock Supabase client
-jest.mock("../../supabaseClient", () => {
-  const mockChain = () => ({
-    select: jest.fn().mockResolvedValue({
-      data: [
-        { id: 1, name: "Apple iPhone 8 Plus", price: 700 },
-        { id: 2, name: "Apple iPhone X", price: 950 }
-      ],
-      error: null
-    }),
-    insert: jest.fn().mockReturnValue({
-      select: jest.fn().mockResolvedValue({
-        data: [{ id: 1, name: "Apple iPhone 8 Plus", price: 700 }],
-        error: null
-      })
-    }),
-    delete: jest.fn().mockReturnValue({
-      not: jest.fn().mockResolvedValue({ data: null, error: null })
-    }),
-    order: jest.fn().mockResolvedValue({
-      data: [
-        { id: 1, name: "Apple iPhone 8 Plus", price: 700 },
-        { id: 2, name: "Apple iPhone X", price: 950 }
-      ],
-      error: null
-    }),
-    eq: jest.fn().mockResolvedValue({ data: null, error: null }),
-    not: jest.fn().mockResolvedValue({ data: null, error: null })
-  });
-
-  return {
-    supabase: {
-      from: jest.fn().mockReturnValue(mockChain())
-    }
-  };
-});
-
 // Catalog API tests
 describe("Catalog API tests", () => {
   beforeAll(async () => {
-    await clearDatabase("products");
-
-    const { error } = await supabase
-      .from("products")
-      .insert([
-        { id: 1, name: "Apple iPhone 8 Plus", price: 700 },
-        { id: 2, name: "Apple iPhone X", price: 950 }
-      ])
-      .select();
-
-    if (error) {
-      console.error("Supabase Insert Error:", error.message);
-      throw new Error(`Setup failed: ${error.message}`);
-    }
+    await supabase.from("products").delete(); // clear table
+    await supabase.from("products").insert([
+      { id: 1, name: "Apple iPhone 8 Plus", price: 700 },
+      { id: 2, name: "Apple iPhone X", price: 950 }
+    ]);
   });
 
   afterAll(async () => {
-    await clearDatabase("products");
+    await supabase.from("products").delete(); // clean up
   });
 
-  // Happy path
-  it("GET /api/products should return real data from the database in order", async () => {
+  it("GET /api/products returns products in order", async () => {
     const res = await request(app).get("/api/products");
-
     expect(res.statusCode).toBe(200);
     expect(res.body.length).toBe(2);
     expect(res.body[0].id).toBe(1);
     expect(res.body[1].id).toBe(2);
   });
+});
 
   // Sad path
   it("GET /api/products should return 500 if database returns an error", async () => {
@@ -99,4 +52,3 @@ describe("Catalog API tests", () => {
     // Restore original function
     supabase.from = originalFrom;
   });
-});
