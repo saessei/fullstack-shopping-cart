@@ -1,48 +1,59 @@
-name: Run Tests
+name: Fullstack Shopping Cart CI
 
 on:
   push:
-    branches:
-      - master
-      - testing
+    branches: [ main, master ]
   pull_request:
-    branches:
-      - master
-      - testing
+    branches: [ main, master ]
 
 jobs:
   test:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB: testdb
+        ports:
+          - 5432:5432
+        # Ensure postgres is ready before we start the job
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - uses: actions/checkout@v4
 
-      # Install & Test Backend
-      - name: Install Backend Dependencies
-        run: npm ci
-        working-directory: ./backend
-
-      # Install & Test Frontend
-      - name: Install Frontend Dependencies
-        run: npm ci
-        working-directory: ./frontend
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
+        working-directory: ./backend
 
-      - name: Run migrations #if you need database migrations
-        run: npm run migrate
-
-      - name: Run tests
+      - name: Run Database Migrations
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          # Using 'postgres' user instead of 'root'
+          DATABASE_URL: postgres://postgres:testpassword@localhost:5432/testdb
+        run: npx node-pg-migrate up
+        working-directory: ./backend
+
+      - name: Run Tests
+        env:
+          NODE_ENV: test
+          # Matches the service config above
+          DATABASE_URL: postgres://postgres:testpassword@localhost:5432/testdb
+          # Placeholders to satisfy the Supabase Client initialization
+          SUPABASE_URL: https://placeholder-url.supabase.co
+          SUPABASE_KEY: placeholder-key-string
         run: npm test
+        working-directory: ./backend
