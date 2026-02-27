@@ -1,69 +1,59 @@
-name: Node.js CI
+name: Fullstack Shopping Cart CI
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ testing ]
   pull_request:
-    branches: [ "master" ]
+    branches: [ testing ]
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
 
-    # Service containers run alongside the job
     services:
       postgres:
         image: postgres:14
         env:
-          POSTGRES_USER: testuser
+          POSTGRES_USER: postgres
           POSTGRES_PASSWORD: testpassword
           POSTGRES_DB: testdb
+        ports:
+          - 5432:5432
+        # Ensure postgres is ready before we start the job
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-        ports:
-          - 5432:5432
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Use Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22.x'
+          node-version: '18'
           cache: 'npm'
-          # This tells GitHub where to find the lockfile for caching
-          cache-dependency-path: './backend/package-lock.json'
+          cache-dependency-path: backend/package-lock.json
 
-      - name: Install Backend Dependencies
-        run: npm ci
+      - name: Install dependencies
+        run: npm install
         working-directory: ./backend
-
-      - name: Install Frontend Dependencies
-        run: npm ci --legacy-peer-deps
-        working-directory: ./frontend
-
-      - name: Setup Mock Auth Schema
-        run: |
-          psql "$DATABASE_URL" -c "CREATE SCHEMA IF NOT EXISTS auth;"
-          psql "$DATABASE_URL" -c "CREATE TABLE IF NOT EXISTS auth.users (id uuid PRIMARY KEY DEFAULT gen_random_uuid());"
-        env:
-          DATABASE_URL: postgres://testuser:testpassword@localhost:5432/testdb
 
       - name: Run Database Migrations
         env:
-          DATABASE_URL: postgres://testuser:testpassword@localhost:5432/testdb
+          # Using 'postgres' user instead of 'root'
+          DATABASE_URL: postgres://postgres:testpassword@localhost:5432/testdb
         run: npx node-pg-migrate up
         working-directory: ./backend
 
       - name: Run Tests
         env:
           NODE_ENV: test
-          DATABASE_URL: postgres://testuser:testpassword@localhost:5432/testdb
-          SUPABASE_URL: https://placeholder.co
-          SUPABASE_KEY: placeholder
+          # Matches the service config above
+          DATABASE_URL: postgres://postgres:testpassword@localhost:5432/testdb
+          # Placeholders to satisfy the Supabase Client initialization
+          SUPABASE_URL: https://placeholder-url.supabase.co
+          SUPABASE_KEY: placeholder-key-string
         run: npm test
         working-directory: ./backend
