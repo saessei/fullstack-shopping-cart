@@ -7,9 +7,10 @@ on:
     branches: [ main, master ]
 
 jobs:
-  test:
+  build-and-test:
     runs-on: ubuntu-latest
 
+    # Service containers to run alongside the job
     services:
       postgres:
         image: postgres:14
