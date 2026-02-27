@@ -3,6 +3,9 @@ const app = require("../../app");
 const { supabase } = require("../../supabaseClient");
 const { clearDatabase } = require("../utils/db");
 
+
+//add comment
+
 // Mock Supabase client
 jest.mock("../../supabaseClient", () => {
   const mockChain = () => ({
