@@ -24,6 +24,8 @@ const { clearDatabase } = require("../utils/db");
 //   };
 // });
 
+//add comment
+
 describe("Catalog API tests", () => {
 
   beforeAll(async () => {
