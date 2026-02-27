@@ -2,30 +2,9 @@ const request = require("supertest");
 const app = require("../../app");
 const { supabase } = require("../../supabaseClient");
 
-
-jest.mock('../../supabaseClient', () => {
-  const mockChain = () => ({
-    select: jest.fn().mockResolvedValue({ data: [{ id: 1, username: 'testuser', email: 'test@example.com' }], error: null }),
-    insert: jest.fn().mockResolvedValue({ data: [{ id: 1, username: 'testuser', email: 'test@example.com' }], error: null }),
-    delete: jest.fn().mockReturnThis(),
-    eq: jest.fn().mockResolvedValue({ data: null, error: null }),
-  });
-
-  return {
-    supabase: {
-      from: jest.fn().mockReturnValue(mockChain()),
-      auth: {
-        signUp: jest.fn().mockResolvedValue({ data: { user: { id: 1 } }, error: null }),
-        signInWithPassword: jest.fn().mockResolvedValue({ data: { session: {} }, error: null }),
-        getUser: jest.fn().mockResolvedValue({ data: { user: { id: 1 } }, error: null }),
-      }
-    }
-  };
-});
-
 describe("Users API (happy paths)", () => {
   beforeEach(async () => {
-    // Database cleanup is skipped since we're mocking Supabase
+    await supabase.from("users").delete().eq("email", "test@example.com");
   });
 
   it("POST /api/users should create a new user", async () => {
