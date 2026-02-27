@@ -49,7 +49,7 @@ jobs:
       - name: Run Database Migrations
         env:
           DATABASE_URL: postgres://testuser:testpassword@localhost:5432/testdb
-        run: npm run migrate up
+        run: npx node-pg-migrate up
         working-directory: ./backend
 
       - name: Run Tests

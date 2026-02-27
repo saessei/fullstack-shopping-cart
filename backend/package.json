@@ -20,7 +20,9 @@
     "@supabase/supabase-js": "^2.39.0",
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",
-    "express": "^4.19.2"
+    "express": "^4.19.2",
+    "node-pg-migrate": "^6.2.2",
+    "pg": "^8.11.0"
   },
   "devDependencies": {
     "baseline-browser-mapping": "^2.10.0",
