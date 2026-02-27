@@ -29,7 +29,7 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
         run: |
-          node scripts/seedTestData.js
+          node seeds/seedTestData.js
 
       - name: Run Jest tests
         working-directory: backend
