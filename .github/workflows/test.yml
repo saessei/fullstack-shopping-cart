@@ -62,5 +62,7 @@ jobs:
       - name: Run Tests
         env:
           DATABASE_URL: postgres://testuser:testpassword@localhost:5432/testdb
+          SUPABASE_URL: https://placeholder-url.supabase.co
+          SUPABASE_KEY: placeholder-key-string
         run: npm test
         working-directory: ./backend
