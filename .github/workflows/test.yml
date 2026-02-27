@@ -2,9 +2,9 @@ name: Fullstack Shopping Cart CI
 
 on:
   push:
-    branches: [ testing ]
+    branches: [ main, master ]
   pull_request:
-    branches: [ testing ]
+    branches: [ main, master ]
 
 jobs:
   test:
