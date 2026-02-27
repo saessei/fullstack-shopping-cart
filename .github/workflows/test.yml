@@ -46,6 +46,13 @@ jobs:
         run: npm ci --legacy-peer-deps
         working-directory: ./frontend
 
+      - name: Setup Mock Auth Schema
+        run: |
+          psql "$DATABASE_URL" -c "CREATE SCHEMA IF NOT EXISTS auth;"
+          psql "$DATABASE_URL" -c "CREATE TABLE IF NOT EXISTS auth.users (id uuid PRIMARY KEY DEFAULT gen_random_uuid());"
+        env:
+          DATABASE_URL: postgres://testuser:testpassword@localhost:5432/testdb
+
       - name: Run Database Migrations
         env:
           DATABASE_URL: postgres://testuser:testpassword@localhost:5432/testdb
