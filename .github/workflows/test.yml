@@ -9,8 +9,20 @@ on:
     branches: [ "master" ]
 
 jobs:
-  build-and-test:
+  build:
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Install & Test Backend
+      - name: Install Backend Dependencies
+        run: npm ci
+        working-directory: ./backend
+
+      # Install & Test Frontend
+      - name: Install Frontend Dependencies
+        run: npm ci
+        working-directory: ./frontend
 
     # Service containers to run alongside the job
     services:
