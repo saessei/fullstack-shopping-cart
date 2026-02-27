@@ -1,30 +1,16 @@
-exports.up = (pgm) => {
-  // 1. Create the auth schema and users table (which you already did)
-  pgm.createSchema("auth", { ifNotExists: true });
-  pgm.createTable(
-    { schema: "auth", name: "users" },
-    {
-      id: { type: "uuid", primaryKey: true, default: pgm.func("gen_random_uuid()") },
-      email: { type: "varchar(255)" },
-    },
-    { ifNotExists: true }
-  );
+-- 1. Create the auth schema
+CREATE SCHEMA IF NOT EXISTS auth;
 
-  // 2. NEW: Create the products table so the cart has something to reference
-  pgm.createTable(
-    "products",
-    {
-      id: { type: "uuid", primaryKey: true, default: pgm.func("gen_random_uuid()") },
-      name: { type: "varchar(255)", notNull: true },
-      price: { type: "integer", notNull: true },
-      created_at: { type: "timestamp", default: pgm.func("now()") }
-    },
-    { ifNotExists: true }
-  );
-};
+-- 2. Create the mock users table
+CREATE TABLE IF NOT EXISTS auth.users (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  email text
+);
 
-exports.down = (pgm) => {
-  pgm.dropTable("products");
-  pgm.dropTable({ schema: "auth", name: "users" });
-  pgm.dropSchema("auth");
-};
+-- 3. Create the products table
+CREATE TABLE IF NOT EXISTS products (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name text NOT NULL,
+  price integer NOT NULL,
+  created_at timestamp with time zone DEFAULT now()
+);
