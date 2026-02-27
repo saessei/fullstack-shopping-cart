@@ -2,6 +2,15 @@ const request = require("supertest");
 const app = require("../../app");
 const { supabase } = require("../../supabaseClient");
 
+
+jest.mock('../../supabaseClient', () => ({
+  from: jest.fn().mockReturnThis(),
+  select: jest.fn().mockReturnThis(),
+  insert: jest.fn().mockResolvedValue({ data: [{ id: 1 }], error: null }),
+  delete: jest.fn().mockReturnThis(),
+  eq: jest.fn().mockReturnThis(),
+}));
+
 describe("Users API (happy paths)", () => {
   beforeEach(async () => {
     await supabase.from("users").delete().eq("email", "test@example.com");

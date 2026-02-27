@@ -3,6 +3,14 @@ const app = require("../../app");
 const { supabase } = require("../../supabaseClient");
 const { clearDatabase } = require("../utils/db");
 
+jest.mock('../../supabaseClient', () => ({
+  from: jest.fn().mockReturnThis(),
+  select: jest.fn().mockReturnThis(),
+  insert: jest.fn().mockResolvedValue({ data: [{ id: 1 }], error: null }),
+  delete: jest.fn().mockReturnThis(),
+  eq: jest.fn().mockReturnThis(),
+}));
+
 describe("Catalog API tests", () => {
 
   beforeAll(async () => {

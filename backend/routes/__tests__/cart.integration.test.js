@@ -2,6 +2,14 @@ const request = require("supertest");
 const app = require("../../app");
 const { supabase } = require("../../supabaseClient");
 
+jest.mock('../../supabaseClient', () => ({
+  from: jest.fn().mockReturnThis(),
+  select: jest.fn().mockReturnThis(),
+  insert: jest.fn().mockResolvedValue({ data: [{ id: 1 }], error: null }),
+  delete: jest.fn().mockReturnThis(),
+  eq: jest.fn().mockReturnThis(),
+}));
+
 describe("Shopping Cart API", () => {
   beforeEach(async () => { //makes sure the db is clean
     await supabase.from("carts").delete().eq("user_id", "test-user-123");
