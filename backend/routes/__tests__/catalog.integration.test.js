@@ -3,26 +3,26 @@ const app = require("../../app");
 const { supabase } = require("../../supabaseClient");
 const { clearDatabase } = require("../utils/db");
 
-// jest.mock('../../supabaseClient', () => {
-//   const mockChain = () => ({
-//     select: jest.fn().mockResolvedValue({ data: [{ id: 1, name: 'Apple iPhone 8 Plus', price: 700 }, { id: 2, name: 'Apple iPhone X', price: 950 }], error: null }),
-//     insert: jest.fn().mockReturnValue({
-//       select: jest.fn().mockResolvedValue({ data: [{ id: 1, name: 'Apple iPhone 8 Plus', price: 700 }], error: null })
-//     }),
-//     delete: jest.fn().mockReturnValue({
-//       not: jest.fn().mockResolvedValue({ data: null, error: null })
-//     }),
-//     order: jest.fn().mockResolvedValue({ data: [{ id: 1, name: 'Apple iPhone 8 Plus', price: 700 }, { id: 2, name: 'Apple iPhone X', price: 950 }], error: null }),
-//     eq: jest.fn().mockResolvedValue({ data: null, error: null }),
-//     not: jest.fn().mockResolvedValue({ data: null, error: null }),
-//   });
+jest.mock('../../supabaseClient', () => {
+  const mockChain = () => ({
+    select: jest.fn().mockResolvedValue({ data: [{ id: 1, name: 'Apple iPhone 8 Plus', price: 700 }, { id: 2, name: 'Apple iPhone X', price: 950 }], error: null }),
+    insert: jest.fn().mockReturnValue({
+      select: jest.fn().mockResolvedValue({ data: [{ id: 1, name: 'Apple iPhone 8 Plus', price: 700 }], error: null })
+    }),
+    delete: jest.fn().mockReturnValue({
+      not: jest.fn().mockResolvedValue({ data: null, error: null })
+    }),
+    order: jest.fn().mockResolvedValue({ data: [{ id: 1, name: 'Apple iPhone 8 Plus', price: 700 }, { id: 2, name: 'Apple iPhone X', price: 950 }], error: null }),
+    eq: jest.fn().mockResolvedValue({ data: null, error: null }),
+    not: jest.fn().mockResolvedValue({ data: null, error: null }),
+  });
 
-//   return {
-//     supabase: {
-//       from: jest.fn().mockReturnValue(mockChain())
-//     }
-//   };
-// });
+  return {
+    supabase: {
+      from: jest.fn().mockReturnValue(mockChain())
+    }
+  };
+});
 
 //add comment
 
