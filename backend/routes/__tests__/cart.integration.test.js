@@ -2,38 +2,7 @@ const request = require("supertest");
 const app = require("../../app");
 const { supabase } = require("../../supabaseClient");
 
-jest.mock('../../supabaseClient', () => {
-  const mockSelect = {
-    eq: jest.fn().mockResolvedValue({ data: [], error: null })
-  };
-
-  const mockChain = {
-    select: jest.fn(() => mockSelect),
-    insert: jest.fn(() => ({
-      select: jest.fn().mockResolvedValue({
-        data: [{ id: 1, user_id: 'test-user-123', product_id: 1, quantity: 2 }],
-        error: null
-      })
-    })),
-    update: jest.fn(() => ({
-      eq: jest.fn(() => ({
-        single: jest.fn().mockResolvedValue({ data: { id: 1 }, error: null })
-      }))
-    })),
-    delete: jest.fn(() => ({
-      eq: jest.fn(() => ({
-        single: jest.fn().mockResolvedValue({ data: null, error: null })
-      }))
-    }))
-  };
-
-  return {
-    supabase: {
-      from: jest.fn(() => mockChain)
-    }
-  };
-});
-
+//add comment
 describe("Shopping Cart API", () => {
   beforeEach(async () => { //makes sure the db is clean
     await supabase.from("carts").delete().eq("user_id", "test-user-123");
@@ -61,7 +30,7 @@ describe("Shopping Cart API", () => {
   
 //random ahh comment
 //random ahh comment#2
-//random ahh comment #4
+
 
   it("POST /api/carts should not save an item with a negative quantity", async () => {
     const newItem = {
