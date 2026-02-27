@@ -43,7 +43,7 @@ jobs:
         working-directory: ./backend
 
       - name: Install Frontend Dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
         working-directory: ./frontend
 
       - name: Run Database Migrations
