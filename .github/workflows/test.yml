@@ -1,7 +1,5 @@
 name: Node.js CI
 
-# This triggers the workflow on any push to master (which includes merges) 
-# and whenever a pull request is opened or updated targeting master.
 on:
   push:
     branches: [ "master" ]
@@ -11,20 +9,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
 
-      # Install & Test Backend
-      - name: Install Backend Dependencies
-        run: npm ci
-        working-directory: ./backend
-
-      # Install & Test Frontend
-      - name: Install Frontend Dependencies
-        run: npm ci
-        working-directory: ./frontend
-
-    # Service containers to run alongside the job
+    # Service containers run alongside the job
     services:
       postgres:
         image: postgres:14
@@ -32,7 +18,6 @@ jobs:
           POSTGRES_USER: testuser
           POSTGRES_PASSWORD: testpassword
           POSTGRES_DB: testdb
-        # Set health checks to wait until postgres has started
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -43,24 +28,32 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Use Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '18.x'
           cache: 'npm'
+          # This tells GitHub where to find the lockfile for caching
+          cache-dependency-path: './backend/package-lock.json'
 
-      - name: Install Dependencies
+      - name: Install Backend Dependencies
         run: npm ci
+        working-directory: ./backend
+
+      - name: Install Frontend Dependencies
+        run: npm ci
+        working-directory: ./frontend
 
       - name: Run Database Migrations
-        # We pass the DATABASE_URL dynamically so node-pg-migrate knows where to connect
         env:
           DATABASE_URL: postgres://testuser:testpassword@localhost:5432/testdb
         run: npm run migrate up
+        working-directory: ./backend
 
       - name: Run Tests
         env:
           DATABASE_URL: postgres://testuser:testpassword@localhost:5432/testdb
         run: npm test
+        working-directory: ./backend
