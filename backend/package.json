@@ -13,7 +13,8 @@
     "dev": "nodemon server.js",
     "start": "node server.js",
     "test": "jest --detectOpenHandles",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "migrate": "node-pg-migrate"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0",
