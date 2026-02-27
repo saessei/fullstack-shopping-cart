@@ -24,6 +24,8 @@ jest.mock('../../supabaseClient', () => {
   };
 });
 
+//add comment
+
 describe("Catalog API tests", () => {
 
   beforeAll(async () => {

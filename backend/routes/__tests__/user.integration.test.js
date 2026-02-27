@@ -25,7 +25,7 @@ jest.mock('../../supabaseClient', () => {
 
 describe("Users API (happy paths)", () => {
   beforeEach(async () => {
-    await supabase.from("users").delete().eq("email", "test@example.com");
+    // Database cleanup is skipped since we're mocking Supabase
   });
 
   it("POST /api/users should create a new user", async () => {

@@ -1,59 +1,31 @@
-name: Fullstack Shopping Cart CI
+name: Run Tests
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ master ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ mmaster ]
 
 jobs:
   test:
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:14
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: testpassword
-          POSTGRES_DB: testdb
-        ports:
-          - 5432:5432
-        # Ensure postgres is ready before we start the job
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
-          cache: 'npm'
-          cache-dependency-path: backend/package-lock.json
+          node-version: 18
 
       - name: Install dependencies
+        working-directory: backend
         run: npm install
-        working-directory: ./backend
 
-      - name: Run Database Migrations
+      - name: Run tests
+        working-directory: backend
         env:
-          # Using 'postgres' user instead of 'root'
-          DATABASE_URL: postgres://postgres:testpassword@localhost:5432/testdb
-        run: npx node-pg-migrate up
-        working-directory: ./backend
-
-      - name: Run Tests
-        env:
-          NODE_ENV: test
-          # Matches the service config above
-          DATABASE_URL: postgres://postgres:testpassword@localhost:5432/testdb
-          # Placeholders to satisfy the Supabase Client initialization
-          SUPABASE_URL: https://placeholder-url.supabase.co
-          SUPABASE_KEY: placeholder-key-string
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_KEY }}
         run: npm test
-        working-directory: ./backend

@@ -13,6 +13,7 @@
     "dev": "nodemon server.js",
     "start": "node server.js",
     "test": "jest --detectOpenHandles",
+    "test:ci": "jest --forceExit --detectOpenHandles=false",
     "test:watch": "jest --watch",
     "migrate": "node-pg-migrate"
   },
