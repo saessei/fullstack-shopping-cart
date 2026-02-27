@@ -28,6 +28,8 @@ jest.mock('../../supabaseClient', () => {
   };
 });
 
+//add comment
+
 describe("Shopping Cart API", () => {
   beforeEach(async () => { //makes sure the db is clean
     await supabase.from("carts").delete().eq("user_id", "test-user-123");
