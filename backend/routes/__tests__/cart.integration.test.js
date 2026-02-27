@@ -3,27 +3,33 @@ const app = require("../../app");
 const { supabase } = require("../../supabaseClient");
 
 jest.mock('../../supabaseClient', () => {
-  const mockChain = () => ({
-    select: jest.fn().mockResolvedValue({ data: [{ id: 1, user_id: 'test-user-123', product_id: 1, quantity: 2 }], error: null }),
-    insert: jest.fn().mockReturnValue({
-      select: jest.fn().mockResolvedValue({ data: [{ id: 1, user_id: 'test-user-123', product_id: 1, quantity: 2 }], error: null })
-    }),
-    update: jest.fn().mockReturnValue({
-      eq: jest.fn().mockReturnValue({
+  const mockSelect = {
+    eq: jest.fn().mockResolvedValue({ data: [], error: null })
+  };
+
+  const mockChain = {
+    select: jest.fn(() => mockSelect),
+    insert: jest.fn(() => ({
+      select: jest.fn().mockResolvedValue({
+        data: [{ id: 1, user_id: 'test-user-123', product_id: 1, quantity: 2 }],
+        error: null
+      })
+    })),
+    update: jest.fn(() => ({
+      eq: jest.fn(() => ({
         single: jest.fn().mockResolvedValue({ data: { id: 1 }, error: null })
-      })
-    }),
-    delete: jest.fn().mockReturnValue({
-      eq: jest.fn().mockReturnValue({
+      }))
+    })),
+    delete: jest.fn(() => ({
+      eq: jest.fn(() => ({
         single: jest.fn().mockResolvedValue({ data: null, error: null })
-      })
-    }),
-    eq: jest.fn().mockResolvedValue({ data: [], error: null }),
-  });
+      }))
+    }))
+  };
 
   return {
     supabase: {
-      from: jest.fn().mockReturnValue(mockChain())
+      from: jest.fn(() => mockChain)
     }
   };
 });
