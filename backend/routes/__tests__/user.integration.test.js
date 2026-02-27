@@ -2,15 +2,13 @@ const request = require("supertest");
 const app = require("../../app");
 const { supabase } = require("../../supabaseClient");
 
-
-
 describe("Users API (happy paths)", () => {
   beforeEach(async () => {
     await supabase.from("users").delete().eq("email", "test@example.com");
   });
 
   it("POST /api/users should create a new user", async () => {
-    const newUser = { username: "testuser", email: "test@example.com" };
+    const newUser = { username: "testuser", email: "test@example.com" }; //correct format for creating a user
 
     const res = await request(app).post("/api/users").send(newUser);
 
@@ -29,7 +27,7 @@ describe("Users API (happy paths)", () => {
   });
 
   it("POST /api/users should not create a user without an email", async () => {
-    const newUser = { username: "testuser" };
+    const newUser = { username: "testuser" }; //email required
 
     const res = await request(app).post("/api/users").send(newUser);
 
@@ -38,7 +36,7 @@ describe("Users API (happy paths)", () => {
   });
 
   it("POST /api/users should not create a user without a username", async () => {
-    const newUser = { email: "test@example.com" };
+    const newUser = { email: "test@example.com" }; //username required
 
     const res = await request(app).post("/api/users").send(newUser);
 
