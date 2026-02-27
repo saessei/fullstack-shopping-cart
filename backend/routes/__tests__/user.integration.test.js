@@ -3,13 +3,25 @@ const app = require("../../app");
 const { supabase } = require("../../supabaseClient");
 
 
-jest.mock('../../supabaseClient', () => ({
-  from: jest.fn().mockReturnThis(),
-  select: jest.fn().mockReturnThis(),
-  insert: jest.fn().mockResolvedValue({ data: [{ id: 1 }], error: null }),
-  delete: jest.fn().mockReturnThis(),
-  eq: jest.fn().mockReturnThis(),
-}));
+jest.mock('../../supabaseClient', () => {
+  const mockChain = () => ({
+    select: jest.fn().mockResolvedValue({ data: [{ id: 1, username: 'testuser', email: 'test@example.com' }], error: null }),
+    insert: jest.fn().mockResolvedValue({ data: [{ id: 1, username: 'testuser', email: 'test@example.com' }], error: null }),
+    delete: jest.fn().mockReturnThis(),
+    eq: jest.fn().mockResolvedValue({ data: null, error: null }),
+  });
+
+  return {
+    supabase: {
+      from: jest.fn().mockReturnValue(mockChain()),
+      auth: {
+        signUp: jest.fn().mockResolvedValue({ data: { user: { id: 1 } }, error: null }),
+        signInWithPassword: jest.fn().mockResolvedValue({ data: { session: {} }, error: null }),
+        getUser: jest.fn().mockResolvedValue({ data: { user: { id: 1 } }, error: null }),
+      }
+    }
+  };
+});
 
 describe("Users API (happy paths)", () => {
   beforeEach(async () => {
