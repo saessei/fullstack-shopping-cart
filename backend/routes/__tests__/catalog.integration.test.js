@@ -3,8 +3,45 @@ const app = require("../../app");
 const { supabase } = require("../../supabaseClient");
 const { clearDatabase } = require("../utils/db");
 
-describe("Catalog API tests", () => {
+// Mock Supabase client
+jest.mock("../../supabaseClient", () => {
+  const mockChain = () => ({
+    select: jest.fn().mockResolvedValue({
+      data: [
+        { id: 1, name: "Apple iPhone 8 Plus", price: 700 },
+        { id: 2, name: "Apple iPhone X", price: 950 }
+      ],
+      error: null
+    }),
+    insert: jest.fn().mockReturnValue({
+      select: jest.fn().mockResolvedValue({
+        data: [{ id: 1, name: "Apple iPhone 8 Plus", price: 700 }],
+        error: null
+      })
+    }),
+    delete: jest.fn().mockReturnValue({
+      not: jest.fn().mockResolvedValue({ data: null, error: null })
+    }),
+    order: jest.fn().mockResolvedValue({
+      data: [
+        { id: 1, name: "Apple iPhone 8 Plus", price: 700 },
+        { id: 2, name: "Apple iPhone X", price: 950 }
+      ],
+      error: null
+    }),
+    eq: jest.fn().mockResolvedValue({ data: null, error: null }),
+    not: jest.fn().mockResolvedValue({ data: null, error: null })
+  });
 
+  return {
+    supabase: {
+      from: jest.fn().mockReturnValue(mockChain())
+    }
+  };
+});
+
+// Catalog API tests
+describe("Catalog API tests", () => {
   beforeAll(async () => {
     await clearDatabase("products");
 
@@ -12,7 +49,7 @@ describe("Catalog API tests", () => {
       .from("products")
       .insert([
         { id: 1, name: "Apple iPhone 8 Plus", price: 700 },
-        { id: 2, name: "Apple iPhone X", price: 950 },
+        { id: 2, name: "Apple iPhone X", price: 950 }
       ])
       .select();
 
@@ -26,7 +63,7 @@ describe("Catalog API tests", () => {
     await clearDatabase("products");
   });
 
-  // happy path
+  // Happy path
   it("GET /api/products should return real data from the database in order", async () => {
     const res = await request(app).get("/api/products");
 
@@ -36,28 +73,27 @@ describe("Catalog API tests", () => {
     expect(res.body[1].id).toBe(2);
   });
 
-  //sad path
+  // Sad path
   it("GET /api/products should return 500 if database returns an error", async () => {
-    const originalFrom = supabase.from; //saves original supabase.from so it can be restored later
+    const originalFrom = supabase.from; // Save original supabase.from
 
     supabase.from = () => ({
       select: () => ({
         order: async () => ({
           data: null,
-          error: { message: "Database connection failed" },
-        }),
-      }),
+          error: { message: "Database connection failed" }
+        })
+      })
     });
 
     const res = await request(app).get("/api/products");
 
     expect(res.statusCode).toBe(500);
     expect(res.body).toEqual({
-      error: "Database connection failed",
+      error: "Database connection failed"
     });
 
     // Restore original function
     supabase.from = originalFrom;
   });
-
 });

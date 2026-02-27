@@ -5,9 +5,17 @@ const { createClient } = require('@supabase/supabase-js');
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
 
-const testClient = createClient(supabaseUrl, supabaseKey);
+let testClient = null;
+if (supabaseUrl && supabaseKey) {
+  testClient = createClient(supabaseUrl, supabaseKey);
+}
 
 const clearDatabase = async(tableName) => {
+    if (!testClient) {
+      console.warn("Supabase client not initialized - skipping database clear");
+      return;
+    }
+    
     const { error } = await testClient
         .from(tableName)
         .delete()
