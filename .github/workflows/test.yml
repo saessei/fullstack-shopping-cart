@@ -33,7 +33,7 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18.x'
+          node-version: '22.x'
           cache: 'npm'
           # This tells GitHub where to find the lockfile for caching
           cache-dependency-path: './backend/package-lock.json'
